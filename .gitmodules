@@ -1,0 +1,3 @@
+[submodule "copilot-pong/orig_repos"]
+	path = copilot-pong/orig_repos
+	url = git@github.com:alura-cursos/github-copilot-pong.git
