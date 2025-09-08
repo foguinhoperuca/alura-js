@@ -5,6 +5,8 @@ let ballImage;
 let playerImage;
 let computerImage;
 let backgroundImage;
+let playerPoints = 0;
+let computerPoints = 0;
 
 function collideOn(cx, cy, collide_radius, x, y, w, h) {
     if (cx + collide_radius < x || cx - collide_radius > x + w) {
@@ -18,6 +20,16 @@ function collideOn(cx, cy, collide_radius, x, y, w, h) {
     return true;
 }
 
+function speakPoints() {
+    if ('speechSynthesis' in window) {
+        const pointsMessage = "Pontuação do jogador é " + playerPoints + " contra " + computerPoints + " do computador";
+        console.log(pointsMessage);
+        const msg = new SpeechSynthesisUtterance(pointsMessage);
+        msg.lang = "pt-BR";
+        window.speechSynthesis.speak(msg);
+    }
+}
+
 class Racket {
    constructor(x) {
         this.x = x;
@@ -27,7 +39,7 @@ class Racket {
 
     }
 
-    update(rate = 3) {
+    update(rate = 5) {
         if (this.x < width / 2) {
             this.y = mouseY;
         } else {
@@ -48,8 +60,6 @@ class Racket {
     }
 
     draw() {
-        // fill(color(255, 255, 255));
-        // rect(this.x, this.y, this.w, this.h);
         if (this.x < width / 2) {
             image(playerImage, this.x, this.y, this.w, this.h);
         } else {
@@ -79,6 +89,13 @@ class Ball {
         this.angle += Math.sqrt(this.vx * this.vx + this.vy * this.vy) / 30;
 
         if (this.x < this.r || this.x > width - this.r) {
+            if (this.x < this.r) {
+                computerPoints++;
+            } else {
+                playerPoints++;
+            }
+            goalSound.play();
+            speakPoints();
             this.reset();
         }
         if (this.y < this.r || this.y > height - this.r) {
@@ -87,6 +104,7 @@ class Ball {
 
         if (collideOn(this.x, this.y, this.r, player01.x, player01.y, player01.w, player01.h)
          || collideOn(this.x, this.y, this.r, computer.x, computer.y, computer.w, computer.h)) {
+            racketBounceSound.play();
             this.vx *= -1;
             this.vx *= 1.1;
             this.vy *= 1.1;
@@ -94,8 +112,6 @@ class Ball {
     }
 
     draw() {
-        // fill(color(0, 255, 0));
-        // ellipse(this.x, this.y, this.r * 2, this.r * 2);
         push();
         translate(this.x, this.y);
         rotate(this.angle);
@@ -109,6 +125,8 @@ function preload() {
     playerImage = loadImage('img/sprites/barra01.png');
     computerImage = loadImage('img/sprites/barra02.png');
     backgroundImage = loadImage('img/sprites/fundo2.png');
+    racketBounceSound = loadSound('sound/446100__justinvoke__bounce.wav');
+    goalSound = loadSound('sound/274178__littlerobotsoundfactory__jingle_win_synth_02.wav');
 }
 
 function setup() {
@@ -119,10 +137,7 @@ function setup() {
 }
 
 function draw() {
-    background(color(0, 0, 0));
-    ball.update();
-    ball.draw();
-
+    // background(color(0, 0, 0));
     let canvasAspectRatio = width / height;
     let backgroundAspectRatio = backgroundImage.width / backgroundImage.height;
     let zoom = 1;
@@ -135,6 +150,8 @@ function draw() {
     let scaledHeight = backgroundImage.height * zoom;
     image(backgroundImage, (width - scaledWidth) / 2, (height - scaledHeight) / 2, scaledWidth, scaledHeight);
 
+    ball.update();
+    ball.draw();
     player01.update();
     player01.draw();
     computer.update();
